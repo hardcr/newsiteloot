@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>nestle</title>
+  <meta name="description" content="Chocolate-themed visit card" />
+  <style>
+    :root{
+      --bg:#0b0b0b;
+      --text:#fff;
+      --accent:#d6b400;
+      --chocolate-dark:#3a1e08;
+      --chocolate-mid:#5c2e0a;
+      --chocolate-light:#7a4506;
+      --shine:#ffe4b5;
+      --muted:#bfbfbf;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:28px 16px;
+    }
+
+    .card{
+      width:100%;
+      max-width:720px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:18px;
+    }
+
+    .logo-wrap{width:220px;max-width:80%;}
+    .logo-img{width:100%;height:auto;display:block;border-radius:12px;filter:drop-shadow(0 6px 18px rgba(0,0,0,0.6));}
+    .logo-fallback{width:160px;height:80px;border-radius:10px;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800}
+
+    .desc{max-width:600px;text-align:center;color:var(--muted);line-height:1.4;padding:0 8px}
+
+    .menu{
+      width:100%;
+      max-width:460px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      margin-top:12px;
+    }
+
+    /* CHOCOLATE BAR BUTTONS */
+    .menu a,
+    .menu button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      position:relative;
+      padding:18px 24px;
+      border-radius:12px;
+      font-weight:900;
+      font-size:17px;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:#fff8e1;
+      text-shadow:0 2px 4px rgba(0,0,0,0.6);
+      
+      /* Chocolate base gradient + texture */
+      background:linear-gradient(135deg,
+        var(--chocolate-dark) 0%,
+        var(--chocolate-mid) 30%,
+        var(--chocolate-light) 60%,
+        var(--chocolate-mid) 100%);
+      
+      /* Shiny highlights (like real chocolate) */
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.18) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.12) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.08) 49%, rgba(255,255,255,0.08) 51%, transparent 55%);
+      
+      /* 3D depth + "broken" chocolate edge */
+      box-shadow:
+        0 8px 16px rgba(0,0,0,0.5),
+        inset 0 -4px 8px rgba(0,0,0,0.4),
+        inset 0 4px 8px rgba(255,255,255,0.1),
+        0 0 30px rgba(214,180,0,0.15);
+      
+      overflow:hidden;
+      transition:transform .22s ease, box-shadow .22s ease;
+    }
+
+    /* Tiny "drip" or broken chocolate effect on bottom */
+    .menu a::after,
+    .menu button::after{
+      content:"";
+      position:absolute;
+      bottom:-6px;
+      left:50%;
+      width:60%;
+      height:18px;
+      background:linear-gradient(to bottom, var(--chocolate-mid), var(--chocolate-dark));
+      border-radius:50%;
+      transform:translateX(-50%);
+      opacity:0.6;
+      filter:blur(4px);
+    }
+
+    .menu a:hover,
+    .menu button:hover{
+      transform:translateY(-6px) scale(1.03);
+      box-shadow:
+        0 16px 32px rgba(0,0,0,0.6),
+        inset 0 -4px 8px rgba(0,0,0,0.4),
+        inset 0 6px 12px rgba(255,255,255,0.2),
+        0 0 40px rgba(214,180,0,0.3);
+    }
+
+    .menu a:active,
+    .menu button:active{
+      transform:translateY(-2px) scale(1.01);
+    }
+
+    .note{color:#9da6ad;margin-top:8px;font-size:14px}
+
+    .logo-bottom{margin-top:20px;width:160px;max-width:70%}
+    .logo-bottom img{width:100%;height:auto;display:block;border-radius:10px}
+
+    /* Floating chocolate image */
+    .floating-img {
+      position: absolute;
+      width: 78px;
+      height: auto;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.9);
+      transition: opacity 300ms ease, transform 300ms cubic-bezier(.2,.9,.3,1);
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,0.7));
+      z-index: 30;
+      border-radius: 10px;
+    }
+
+    .floating-img.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    @media (max-width:520px){
+      .menu a,.menu button{
+        font-size:16px;
+        padding:16px 20px;
+      }
+      .floating-img{width:60px}
+    }
+
+    /* Rest of your popups (unchanged, only colors adjusted slightly) */
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);opacity:0;pointer-events:none;transition:background .22s ease,opacity .22s ease;z-index:100}
+    .overlay.show{background:rgba(0,0,0,0.7);opacity:1;pointer-events:auto}
+    .modal{background:linear-gradient(180deg,#2c1405,#1a0b03);padding:20px;border-radius:16px;width:92%;max-width:440px;color:var(--text);box-shadow:0 20px 80px rgba(0,0,0,0.7);transform:translateY(10px) scale(.98);opacity:0;transition:all .26s cubic-bezier(.2,.9,.3,1)}
+    .overlay.show .modal{transform:translateY(0) scale(1);opacity:1}
+    .modal h3{margin:0 0 10px 0;color:var(--accent);font-size:20px}
+    .modal p{margin:0;color:#f0d8b0;line-height:1.5;font-size:15px}
+    .close-btn{position:absolute;right:14px;top:12px;background:none;border:0;color:var(--accent);font-size:22px;cursor:pointer}
+  </style>
+</head>
+<body>
+
+  <main class="card" role="main" id="card">
+    <div class="logo-wrap" id="logoTop">
+      <img src="77gj.gif" alt="logo" class="logo-img" id="logoImgTop" onerror="handleLogoError(event)" />
+    </div>
+
+    <p class="desc">!!!!კეთილი იყოს თქვენი მობრძანება ნესტლეს ვებ გვერდზე.!!!!</p>
+
+    <nav class="menu" aria-label="Main menu">
+      <a href="https://t.me/erwertwerwbot" target="_blank" rel="noopener noreferrer">BOT</a>
+      <a href="https://t.me/zigiesgrp" target="_blank" rel="noopener noreferrer">CHANNEL</a>
+      <a href="https://t.me/ifintrouble" target="_blank" rel="noopener noreferrer">SUPPORT</a>
+      <button type="button" id="workBtn">WORK</button>
+      <button type="button" id="promoBtn">PROMO</button>
+    </nav>
+
+    <img src="photo_2025-11-06 07.01.13.jpeg" alt="floating chocolate" id="floatingImg" class="floating-img" onerror="(e=>{e.target.style.display='none'})" />
+
+  </main>
+
+  <!-- Popup (unchanged logic) -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="close-btn" id="closeModal" aria-label="Close">✖</button>
+      <h3 id="modalTitle">Title</h3>
+      <p id="modalText">Content…</p>
+    </div>
+  </div>
+
+  <script>
+    // (All your original JS is unchanged – only added id="card" for floating script)
+    function handleLogoError(e){
+      const img = e.target;
+      const parent = img.parentElement;
+      if(!parent) return;
+      img.style.display = 'none';
+      const box = document.createElement('div');
+      box.className = 'logo-fallback';
+      box.textContent = 'LOGO';
+      parent.appendChild(box);
+    }
+
+    const overlay = document.getElementById('overlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+    const workBtn = document.getElementById('workBtn');
+    const promoBtn = document.getElementById('promoBtn');
+    const closeModal = document.getElementById('closeModal');
+
+    function openModal(title, text){
+      modalTitle.textContent = title;
+      modalText.textContent = text;
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden','false');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModalFn(){
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden','true');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+
+    workBtn.addEventListener('click', () => openModal('Work Info', 'თბილისში ვეძებ მოსაწევზე კურიერს. საჭიროა ვიდეო ან ზალოგ. ყველაზე მაღალი ანაზღაურება და საუკეთესო პირობები. 🖤  ადრესები მოდის აწონილი, შეფუთული, მხოლოდ დადებაა საჭირო.მაგნიტზე ან მაგნიტის გარეშე. 1/2გ - 20 ლარი 20 ადრეს - 400 ლარი  30 ადრეს - 600 ლარი. ხელფასი ყოველი დღის ბოლოს. თავისუფალი გრაფიკი.+ საჩუქარი ყველა დადებაზე.  დეტალებზე პირადში : @ifintrouble'));
+    promoBtn.addEventListener('click', () => openModal('Promotions', 'Please come back later:('));
+
+    closeModal.addEventListener('click', closeModalFn);
+    overlay.addEventListener('click', e => { if(e.target === overlay) closeModalFn(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && overlay.classList.contains('show')) closeModalFn(); });
+
+    // Floating image (unchanged)
+    (function(){
+      const floating = document.getElementById('floatingImg');
+      const container = document.getElementById('card');
+      if(!floating || !container) return;
+
+      const minDelay = 2500, maxDelay = 7000;
+      const minVisible = 1400, maxVisible = 3500;
+      const padding = 30;
+
+      function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+      let running = true;
+
+      function placeAndShow(){
+        const rect = container.getBoundingClientRect();
+        const x = rand(padding, Math.max(rect.width - padding, padding));
+        const y = rand(padding, Math.max(rect.height - padding, padding));
+        const left = rect.left + x;
+        const top = rect.top + y;
+
+        floating.style.left = left + 'px';
+        floating.style.top = top + 'px';
+        floating.classList.add('show');
+
+        const visibleFor = rand(minVisible, maxVisible);
+        setTimeout(() => floating.classList.remove('show'), visibleFor);
+      }
+
+      function loopOnce(){
+        if(!running) return;
+        placeAndShow();
+        setTimeout(loopOnce, rand(minDelay, maxDelay));
+      }
+
+      setTimeout(loopOnce, 1200);
+
+      const pause = () => { running = false; floating.classList.remove('show'); };
+      const resume = () => { if(!running){ running = true; setTimeout(loopOnce, 800); } };
+      container.addEventListener('mouseenter', pause);
+      container.addEventListener('mouseleave', resume);
+      container.addEventListener('touchstart', pause);
+      container.addEventListener('touchend', resume);
+    })();
+  </script>
+</body>
+</html>
